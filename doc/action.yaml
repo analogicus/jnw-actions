@@ -25,4 +25,13 @@ runs:
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/eda/lib
           export PATH=/opt/eda/bin:$HOME/.local/bin:$PATH
           rm -rf docs/ && cicsim template ${GITHUB_ACTION_PATH}/template.yaml options.yaml
-          export
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs/
+          destination: ./_site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
