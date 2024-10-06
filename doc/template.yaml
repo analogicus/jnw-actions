@@ -4,13 +4,13 @@ dirs:
   - assets/${IP}
   - assets/css
 
-#create:
-#  assets/css/style.scss: |
-#    ---
-#    ---
-#    @import
-#      "minima/skins/{{ site.minima.skin | default: 'classic' }}",
-#      "minima/initialize";
+create:
+  assets/css/style.scss: |
+    ---
+    ---
+    @import
+      "minima/skins/{{ site.minima.skin | default: 'classic' }}",
+      "minima/initialize";
 
 copy:
   - _config.yml
