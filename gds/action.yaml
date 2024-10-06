@@ -1,0 +1,47 @@
+name: 'Analogicus Janeway GDS Action'
+description: 'This action generates a GDS'
+branding:
+  color: purple
+  icon: layers
+
+inputs:
+  cell:
+    description: 'Name of cell'
+    required: true
+    type: string
+  library:
+    description: 'Name of library'
+    required: true
+    type: string
+
+
+runs:
+    using: 'composite'
+    steps:
+      - name: Checkout dependencies
+        shell: bash
+        run: |
+          python3 -m pip install cicconf
+          cicconf --rundir ../ --config config.yaml clone --https
+      - name: Run GDS
+        shell: bash
+        env:
+          CELL: ${{ inputs.cell }}
+          LIBRARY: ${{ inputs.library }}
+        run: |
+          export PDK_ROOT=/opt/pdk/share/pdk
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "/opt/eda/bin" >> $GITHUB_PATH
+          cd work
+          make gds CELL=$CELL LIB=$LIBRARY
+          export
+          ls -l gds
+          cat gds/${CELL}.log >> $GITHUB_STEP_SUMMARY
+          test -s gds/${CELL}.gds || exit 1;
+      - name: Archive GDS
+        uses: actions/upload-artifact@v4
+        with:
+          name: gds
+          path: |
+            work/gds/${{ inputs.cell }}.gds
+            work/gds/${{ inputs.cell }}.log

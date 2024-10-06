@@ -1,0 +1,70 @@
+name: 'Analogicus Janeway LVS/LPE Action'
+description: 'This action runs LVS/LPE'
+branding:
+  color: purple
+  icon: layers
+
+inputs:
+  cell:
+    description: 'Name of cell'
+    required: true
+    type: string
+  library:
+    description: 'Name of library'
+    required: true
+    type: string
+
+
+runs:
+    using: 'composite'
+    steps:
+      - name: Checkout dependencies
+        shell: bash
+        run: |
+          python3 -m pip install cicconf
+          cicconf --rundir ../ --config config.yaml clone --https
+      - name: Run LVS
+        shell: bash
+        env:
+          CELL: ${{ inputs.cell }}
+          LIBRARY: ${{ inputs.library }}
+        run: |
+          export PDK_ROOT=/opt/pdk/share/pdk
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "/opt/eda/bin" >> $GITHUB_PATH
+          cd work
+          make xlvs CELL=$CELL LIB=$LIBRARY
+          echo -e "\n\n# LPE\n\n" >> $GITHUB_STEP_SUMMARY
+          echo -e "\`\`\`bash\n" >> $GITHUB_STEP_SUMMARY
+          cat lvs/${CELL}_lvs.log >> $GITHUB_STEP_SUMMARY
+          echo -e "\`\`\`\n" >> $GITHUB_STEP_SUMMARY
+      - name: Run LPE
+        shell: bash
+        env:
+          CELL: ${{ inputs.cell }}
+          LIBRARY: ${{ inputs.library }}
+        run: |
+          export PDK_ROOT=/opt/pdk/share/pdk
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "/opt/eda/bin" >> $GITHUB_PATH
+          cd work
+          make lpe CELL=$CELL LIB=$LIBRARY
+          echo -e "\n\n# LPE\n\n" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n\n## MAGIC\n\n" >> $GITHUB_STEP_SUMMARY
+          echo -e "\`\`\`bash\n" >> $GITHUB_STEP_SUMMARY
+          cat lpe/${CELL}_magic_lpe.log >> $GITHUB_STEP_SUMMARY
+          echo -e "\`\`\`\n" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n\n##  LVS\n\n" >> $GITHUB_STEP_SUMMARY
+          echo -e "\`\`\`bash\n" >> $GITHUB_STEP_SUMMARY
+          test -f lpe/${CELL}_lvs.log && cat lpe/${CELL}_lvs.log >> $GITHUB_STEP_SUMMARY
+          echo -e  "\`\`\`\n" >> $GITHUB_STEP_SUMMARY
+      - name: Archive LVS/LPE
+        uses: actions/upload-artifact@v4
+        with:
+          name: lvslpe
+          path: |
+            work/lvs/${{ inputs.cell }}_lvs.log
+            work/lpe/${{ inputs.cell }}_lpe.spi
+            work/lpe/${{ inputs.cell }}_lvs.log
+            work/lpe/${{ inputs.cell }}_magic_lpe.log
+            work/lpe/${{ inputs.cell }}_netgen_lvs.log
