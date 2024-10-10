@@ -11,4 +11,4 @@ runs:
       - name: Read library
         shell: bash
         run: |
-          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml > $GITHUB_OUTPUT
+          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml >> $GITHUB_OUTPUT
