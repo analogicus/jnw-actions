@@ -8,18 +8,23 @@ import yaml
 @click.argument("yfile")
 def cli(yfile):
     with open(yfile) as fi:
-        obj = yaml.safe_load(fi)
-        for o in obj:
-            v = obj[o]
-            if(type(v) is list):
-                continue
-            if(type(v) is dict):
-                continue
+        with open(os.environ['GITHUB_OUTPUT'],'a') as fh:
+            obj = yaml.safe_load(fi)
+            for o in obj:
+                v = obj[o]
+                if(type(v) is list):
+                    continue
+                if(type(v) is dict):
+                    continue
 
-            if(re.search(r"\s",v)):
-                print("%s=\"%s\""%(o,v))
-            else:
-                print("%s=%s"%(o,obj[o]))
+                ss = "%s=%s\n"%(o,v)
+                if(re.search(r"\s",v)):
+                    ss = "%s=\"%s\"\n"%(o,v)
+
+                print(ss)
+                fh.write(ss)
+
+
 
 
 if(__name__ == '__main__'):
