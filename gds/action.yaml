@@ -33,6 +33,7 @@ runs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
           cd work
+          export
           export CSCH=../design/${LIBRARY}/${CELL}.sch
           export CMAG=../design/${LIBRARY}/${CELL}.mag
           test -f ${CSCH} || echo "::error:: Could not find Schematic ${CSCH}" && exit 1

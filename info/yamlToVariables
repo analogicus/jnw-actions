@@ -16,7 +16,7 @@ def cli(yfile):
             if(type(v) is dict):
                 continue
 
-            if(re.search("\s",v)):
+            if(re.search(r"\s",v)):
                 print("%s=\"%s\""%(o,v))
             else:
                 print("%s=%s"%(o,obj[o]))
