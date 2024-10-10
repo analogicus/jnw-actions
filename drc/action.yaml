@@ -23,6 +23,17 @@ runs:
         run: |
           python3 -m pip install cicconf
           cicconf --rundir ../ --config config.yaml clone --https
+
+      - name: Read library
+        uses: mikefarah/yq@v4
+        id: library
+        with:
+          cmd: echo LIBRARY=`yq '.library' info.yaml` > $GITHUB_OUTPUT
+      - name: Read top module name
+        uses: mikefarah/yq@v4
+        id: cell
+        with:
+          cmd: echo CELL=`yq '.cell' info.yaml` > $GITHUB_OUTPUT
       - name: Run DRC
         shell: bash
         env:

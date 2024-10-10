@@ -22,6 +22,7 @@ copy:
 do:
   - ls -l
   - cd ../work; make doc
+  - test -d ../media && cp -r ../media .
   - cp -pr ../documents/* .
   - cp ../README.md  index.md
 

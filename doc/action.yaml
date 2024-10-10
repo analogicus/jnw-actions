@@ -24,7 +24,7 @@ runs:
           export CIC_RANDOM_PLOTNAME=1
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/eda/lib
           export PATH=/opt/eda/bin:$HOME/.local/bin:$PATH
-          rm -rf docs/ && cicsim template ${GITHUB_ACTION_PATH}/template.yaml options.yaml
+          rm -rf docs/ && cicsim template ${GITHUB_ACTION_PATH}/template.yaml info.yaml
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll
