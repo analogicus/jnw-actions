@@ -35,9 +35,8 @@ runs:
           cd work
           export CSCH=../design/${LIBRARY}/${CELL}.sch
           export CMAG=../design/${LIBRARY}/${CELL}.mag
-          test -f ${CSCH} || echo "::error Could not find Schematic ${CSCH}" && exit 1
-          test -f ${CMAG} || echo "::error Could not find Layout ${CMAG}" && exit 1
-
+          test -f ${CSCH} || echo "::error:: Could not find Schematic ${CSCH}" && exit 1
+          test -f ${CMAG} || echo "::error:: Could not find Layout ${CMAG}" && exit 1
           make gds CELL=$CELL LIB=$LIBRARY
           ls -l gds
           cat gds/${CELL}.log >> $GITHUB_STEP_SUMMARY
