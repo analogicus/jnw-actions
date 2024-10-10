@@ -23,16 +23,6 @@ runs:
         run: |
           python3 -m pip install cicconf
           cicconf --rundir ../ --config config.yaml clone --https
-      - name: Read library
-        uses: mikefarah/yq@v4
-        id: library
-        with:
-          cmd: echo LIBRARY=`yq '.library' info.yaml` > $GITHUB_OUTPUT
-      - name: Read cell
-        uses: mikefarah/yq@v4
-        id: cell
-        with:
-          cmd: echo CELL=`yq '.cell' info.yaml` > $GITHUB_OUTPUT
       - name: Run GDS
         shell: bash
         env:
