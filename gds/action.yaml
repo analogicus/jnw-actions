@@ -33,8 +33,9 @@ runs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
           cd work
+          test -f ../design/${LIBRARY}/${CELL}.sch || exit 1
+          test -f ../design/${LIBRARY}/${CELL}.mag || exit 1
           make gds CELL=$CELL LIB=$LIBRARY
-          export
           ls -l gds
           cat gds/${CELL}.log >> $GITHUB_STEP_SUMMARY
           test -s gds/${CELL}.gds || exit 1;
