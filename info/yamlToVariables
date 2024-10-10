@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import re
+import click
+import yaml
+
+@click.command()
+@click.argument("yfile")
+def cli(yfile):
+    with open(yfile) as fi:
+        obj = yaml.safe_load(fi)
+        for o in obj:
+            v = obj[o]
+            if(type(v) is list):
+                continue
+            if(type(v) is dict):
+                continue
+            print("%s=\"%s\""%(o,obj[o]))
+
+
+if(__name__ == '__main__'):
+    cli()
