@@ -14,4 +14,4 @@ runs:
           ls -l
           cat info.yaml
           python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml
-          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml >> $GITHUB_OUTPUT
+          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml >> "$GITHUB_OUTPUT"
