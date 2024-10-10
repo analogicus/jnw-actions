@@ -4,16 +4,6 @@ branding:
   color: purple
   icon: layers
 
-inputs:
-  cell:
-    description: 'Name of cell'
-    required: true
-    type: string
-  library:
-    description: 'Name of library'
-    required: true
-    type: string
-
 
 runs:
     using: 'composite'
@@ -23,11 +13,18 @@ runs:
         run: |
           python3 -m pip install cicconf
           cicconf --rundir ../ --config config.yaml clone --https
+      - name: Read library
+        uses: mikefarah/yq@v4
+        id: library
+        with:
+          cmd: echo LIBRARY=`yq '.library' info.yaml` > $GITHUB_OUTPUT
+      - name: Read cell
+        uses: mikefarah/yq@v4
+        id: cell
+        with:
+          cmd: echo CELL=`yq '.cell' info.yaml` > $GITHUB_OUTPUT
       - name: Run LVS
         shell: bash
-        env:
-          CELL: ${{ inputs.cell }}
-          LIBRARY: ${{ inputs.library }}
         run: |
           export PDK_ROOT=/opt/pdk/share/pdk
           echo "$HOME/.local/bin" >> $GITHUB_PATH
