@@ -1,0 +1,20 @@
+name: 'Analogicus Janeway Read library'
+description: 'Read library and cell from info.yaml'
+
+outputs:
+      library: ${{ steps.library.outputs.LIBRARY }}
+      cell: ${{ steps.cell.outputs.CELL }}
+
+runs:
+    using: 'composite'
+    steps:
+      - name: Read library
+        uses: mikefarah/yq@v4
+        id: library
+        with:
+          cmd: echo LIBRARY=`yq '.library' info.yaml` > $GITHUB_OUTPUT
+      - name: Read cell
+        uses: mikefarah/yq@v4
+        id: cell
+        with:
+          cmd: echo CELL=`yq '.cell' info.yaml` > $GITHUB_OUTPUT
