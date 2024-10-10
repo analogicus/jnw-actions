@@ -26,6 +26,7 @@ runs:
       - name: Run LVS
         shell: bash
         run: |
+          export
           export PDK_ROOT=/opt/pdk/share/pdk
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
