@@ -37,12 +37,12 @@ runs:
           export CSCH=../design/${LIBRARY}/${CELL}.sch
           export CMAG=../design/${LIBRARY}/${CELL}.mag
 
-          if [[ -f ${CSCH}]]; then
+          if [[ -f ${CSCH} ]] ; then
             echo "::error:: Could not find Schematic ${CSCH}"
             exit 1
           fi
 
-          if [[ -f ${CMAG} ]]; then
+          if [[ -f ${CMAG} ]] ; then
             echo "::error:: Could not find Layout ${CMAG}"
             exit 1
           fi
