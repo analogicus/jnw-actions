@@ -78,8 +78,8 @@ runs:
         with:
           name: lvslpe
           path: |
-            work/lvs/${{ inputs.cell }}_lvs.log
-            work/lpe/${{ inputs.cell }}_lpe.spi
-            work/lpe/${{ inputs.cell }}_lvs.log
-            work/lpe/${{ inputs.cell }}_magic_lpe.log
-            work/lpe/${{ inputs.cell }}_netgen_lvs.log
+            work/lvs/${{ steps.info.outputs.cell }}_lvs.log
+            work/lpe/${{ steps.info.outputs.cell }}_lpe.spi
+            work/lpe/${{ steps.info.outputs.cell }}_lvs.log
+            work/lpe/${{ steps.info.outputs.cell }}_magic_lpe.log
+            work/lpe/${{ steps.info.outputs.cell }}_netgen_lvs.log

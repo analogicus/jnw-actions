@@ -42,5 +42,5 @@ runs:
         with:
           name: gds
           path: |
-            work/gds/${{ inputs.cell }}.gds
-            work/gds/${{ inputs.cell }}.log
+            work/gds/${{ steps.info.outputs.cell }}.gds
+            work/gds/${{ steps.info.outputs.cell }}.log

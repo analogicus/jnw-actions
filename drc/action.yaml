@@ -40,4 +40,4 @@ runs:
         with:
           name: drc
           path: |
-            work/drc/${{ inputs.cell }}_drc.log
+            work/drc/${{ steps.info.outputs.cell }}_drc.log
