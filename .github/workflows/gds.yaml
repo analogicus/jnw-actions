@@ -1,0 +1,50 @@
+name: JNW_GDS
+
+on:
+  workflow_call:
+
+jobs:
+  gds:
+    runs-on: ubuntu-latest
+    container:
+      image: wulffern/aicex:24.04_0.1.4
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Read library
+        id: info
+        shell: bash
+        run: |
+          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
+          #python3 jnw-actions/yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
+      - name: Checkout dependencies
+        shell: bash
+        run: |
+          python3 -m pip install cicconf
+          cicconf --rundir ../ --config config.yaml clone --https
+      - name: Run GDS
+        shell: bash
+        env:
+          CELL: ${{ steps.info.outputs.cell }}
+          LIBRARY: ${{ steps.info.outputs.library }}
+        run: |
+          export PDK_ROOT=/opt/pdk/share/pdk
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "/opt/eda/bin" >> $GITHUB_PATH
+          cd work
+          export CSCH=../design/${LIBRARY}/${CELL}.sch
+          export CMAG=../design/${LIBRARY}/${CELL}.mag
+          test -f ${CSCH} || echo "::error:: Could not find Schematic ${CSCH}" && exit 1
+          test -f ${CMAG} || echo "::error:: Could not find Layout ${CMAG}" && exit 1
+          make gds CELL=$CELL LIB=$LIBRARY
+          ls -l gds
+          cat gds/${CELL}.log >> $GITHUB_STEP_SUMMARY
+          test -s gds/${CELL}.gds || exit 1;
+      - name: Archive GDS
+        uses: actions/upload-artifact@v4
+        with:
+          name: gds
+          path: |
+            work/gds/${{ inputs.cell }}.gds
+            work/gds/${{ inputs.cell }}.log
