@@ -11,6 +11,7 @@ runs:
           cicconf --rundir ../ --config config.yaml clone --https
       - name: Read info
         id: info
+        shell: bash
         run: |
           python3 ${GITHUB_ACTION_PATH}/../yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
       - name: Run GDS
