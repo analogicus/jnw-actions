@@ -14,6 +14,13 @@ runs:
         shell: bash
         run: |
           python3 ${GITHUB_ACTION_PATH}/../yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
+      - name: Check for Cell
+        shell: bash
+        env:
+          CELL: ${{ steps.info.outputs.cell }}
+          LIBRARY: ${{ steps.info.outputs.library }}
+        run: |
+          bash ${GITHUB_ACTION_PATH}/../checkForLay
       - name: Run DRC
         shell: bash
         env:
@@ -24,8 +31,6 @@ runs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
           cd work
-          export CMAG=../design/${LIBRARY}/${CELL}.mag
-          test -f ${CMAG} || echo "::error:: Could not find Layout ${CMAG}" && exit 1
           make drc CELL=$CELL LIB=$LIBRARY
           cat drc/${CELL}_drc.log >> $GITHUB_STEP_SUMMARY
           tail -n 1 drc/${CELL}_drc.log| perl -ne '$exit =0;if(!m/:\s+0\n/ig){$exit = 1;}if(m/couldn?t be read/ig){$exit = 2}; exit $exit'
