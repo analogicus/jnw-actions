@@ -1,33 +1,38 @@
-name: JNW_GDS
+name: 'Analogicus Janeway GDS Action'
+description: 'This action generates a GDS'
+branding:
+  color: purple
+  icon: layers
 
-on:
-  workflow_call:
+inputs:
+  cell:
+    description: 'Name of cell'
+    required: true
+    type: string
+  library:
+    description: 'Name of library'
+    required: true
+    type: string
 
-jobs:
-  gds:
-    runs-on: ubuntu-latest
-    container:
-      image: wulffern/aicex:24.04_0.1.4
-      options: --user root
+
+runs:
+    using: 'composite'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Read library
-        id: info
-        shell: bash
-        run: |
-          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
-          #python3 jnw-actions/yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
       - name: Checkout dependencies
         shell: bash
         run: |
           python3 -m pip install cicconf
           cicconf --rundir ../ --config config.yaml clone --https
+      - name: Read info
+        id: info
+          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
+
       - name: Run GDS
         shell: bash
         env:
           CELL: ${{ steps.info.outputs.cell }}
           LIBRARY: ${{ steps.info.outputs.library }}
+
         run: |
           export PDK_ROOT=/opt/pdk/share/pdk
           echo "$HOME/.local/bin" >> $GITHUB_PATH
