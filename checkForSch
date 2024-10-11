@@ -1,0 +1,9 @@
+#!/bin/bash
+export CSCH=../design/${LIBRARY}/${CELL}.sch
+
+if [[ -f ${CSCH} ]]; then
+    echo "::note:: Found Schematic ${CSCH}"
+else
+    echo "::error:: Could not find Schematic ${CSCH}"
+    exit 1
+fi

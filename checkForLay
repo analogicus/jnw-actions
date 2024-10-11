@@ -1,0 +1,9 @@
+#!/bin/bash
+export CMAG=../design/${LIBRARY}/${CELL}.mag
+
+if [[ -f ${CMAG} ]]; then
+    echo "::note:: Found Layout ${CMAG}"
+else
+    echo "::error:: Could not find Layout ${CMAG}"
+    exit 1
+fi
