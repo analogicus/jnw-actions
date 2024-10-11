@@ -20,9 +20,8 @@ def cli(yfile):
 
                 ss = "%s=%s\n"%(o,v)
                 if(re.search(r"\s",v)):
-                    ss = "%s=\"%s\"\n"%(o,v)
+                    ss = "%s=\"%s\"\n"%(o.upper(),v)
 
-                print(ss)
                 fh.write(ss)
 
 
