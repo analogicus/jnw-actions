@@ -1,8 +1,20 @@
 name: 'Analogicus Janeway Read library'
 description: 'Read library and cell from info.yaml'
 
+
+on:
+  workflow_call:
+    outputs:
+      library:
+        description: "library from info.yaml"
+        value: ${{ jobs.info.outputs.library }}
+      cell:
+        description: "Cell from info.yaml"
+        value: ${{ jobs.info.outputs.cell }}
+
 jobs:
-    using: 'composite'
+  info:
+    runs-on: ubuntu-latest
     outputs:
         library: ${{ steps.info.outputs.LIBRARY }}
         cell: ${{ steps.info.outputs.CELL }}
