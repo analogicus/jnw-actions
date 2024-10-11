@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  gds:
+  drc:
     runs-on: ubuntu-latest
     container:
       image: wulffern/aicex:24.04_0.1.4
