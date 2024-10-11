@@ -34,18 +34,9 @@ runs:
           CELL: ${{ steps.info.outputs.cell }}
           LIBRARY: ${{ steps.info.outputs.library }}
         run: |
-          export CSCH=../design/${LIBRARY}/${CELL}.sch
-          export CMAG=../design/${LIBRARY}/${CELL}.mag
+          ${GITHUB_ACTION_PATH}/../checkForSch
+          ${GITHUB_ACTION_PATH}/../checkForLay
 
-          if [[ -f "${CSCH}" ]]; then
-            echo "::error:: Could not find Schematic ${CSCH}"
-            exit 1
-          fi
-
-          if [[ -f "${CMAG}" ]]; then
-            echo "::error:: Could not find Layout ${CMAG}"
-            exit 1
-          fi
       - name: Run LVS
         shell: bash
         env:
