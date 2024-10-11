@@ -18,7 +18,7 @@ def cli(yfile):
                 if(type(v) is dict):
                     continue
 
-                ss = "%s=%s\n"%(o,v)
+                ss = "%s=%s\n"%(o.upper(),v)
                 if(re.search(r"\s",v)):
                     ss = "%s=\"%s\"\n"%(o.upper(),v)
 
