@@ -1,18 +1,5 @@
 name: 'Analogicus Janeway DRC Action'
 description: 'This action runs DRC'
-branding:
-  color: purple
-  icon: layers
-
-inputs:
-  cell:
-    description: 'Name of cell'
-    required: true
-    type: string
-  library:
-    description: 'Name of library'
-    required: true
-    type: string
 
 runs:
     using: 'composite'
@@ -22,11 +9,16 @@ runs:
         run: |
           python3 -m pip install cicconf
           cicconf --rundir ../ --config config.yaml clone --https
+      - name: Read info
+        id: info
+        shell: bash
+        run: |
+          python3 ${GITHUB_ACTION_PATH}/../yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
       - name: Run DRC
         shell: bash
         env:
-          CELL: ${{ inputs.cell }}
-          LIBRARY: ${{ inputs.library }}
+          CELL: ${{ steps.info.outputs.cell }}
+          LIBRARY: ${{ steps.info.outputs.library }}
         run: |
           export PDK_ROOT=/opt/pdk/share/pdk
           echo "$HOME/.local/bin" >> $GITHUB_PATH
