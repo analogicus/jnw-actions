@@ -12,7 +12,6 @@ runs:
       - name: Read info
         id: info
         run: |
-          export
           python3 ${GITHUB_ACTION_PATH}/../yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
       - name: Run GDS
         shell: bash
