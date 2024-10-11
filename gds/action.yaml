@@ -1,19 +1,5 @@
 name: 'Analogicus Janeway GDS Action'
 description: 'This action generates a GDS'
-branding:
-  color: purple
-  icon: layers
-
-inputs:
-  cell:
-    description: 'Name of cell'
-    required: true
-    type: string
-  library:
-    description: 'Name of library'
-    required: true
-    type: string
-
 
 runs:
     using: 'composite'
@@ -25,8 +11,8 @@ runs:
           cicconf --rundir ../ --config config.yaml clone --https
       - name: Read info
         id: info
+        run: |
           python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml --paths "library,cell" >> "$GITHUB_OUTPUT"
-
       - name: Run GDS
         shell: bash
         env:
