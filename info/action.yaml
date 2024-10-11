@@ -1,16 +1,14 @@
 name: 'Analogicus Janeway Read library'
 description: 'Read library and cell from info.yaml'
 
-#outputs:
-#      library: ${{ steps.library.outputs.LIBRARY }}
-#      cell: ${{ steps.cell.outputs.CELL }}
-
+outputs:
+      library: ${{ steps.info.outputs.LIBRARY }}
+      cell: ${{ steps.info.outputs.CELL }}
 runs:
     using: 'composite'
     steps:
       - name: Read library
+        id: info
         shell: bash
         run: |
-          ls -l
-          cat info.yaml
-          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml
+          python3 ${GITHUB_ACTION_PATH}/yamlToVariables info.yaml --paths "library,cell"

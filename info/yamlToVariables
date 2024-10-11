@@ -5,24 +5,35 @@ import click
 import yaml
 import os
 
+def _get(path,data=None):
+    if(data is None):
+        return None
+    if("." in path):
+        arr = path.split(".")
+        ndata = _get(arr[0],data)
+        return _get(".".join(arr[1:]),ndata)
+    elif(path in data):
+        return data[path]
+    else:
+        print(f"Warning: Could not find {path} in {data} ")
+        return None
+
 @click.command()
 @click.argument("yfile")
-def cli(yfile):
+@click.option("--paths",default=".",help="What path to output")
+def cli(yfile,paths):
     with open(yfile) as fi:
-        with open(os.environ['GITHUB_OUTPUT'],'a') as fh:
-            obj = yaml.safe_load(fi)
-            for o in obj:
-                v = obj[o]
-                if(type(v) is list):
-                    continue
-                if(type(v) is dict):
-                    continue
+        obj = yaml.safe_load(fi)
 
-                ss = "%s=%s\n"%(o.upper(),v)
-                if(re.search(r"\s",v)):
-                    ss = "%s=\"%s\"\n"%(o.upper(),v)
+        for p in paths.split(","):
+            o = p.replace(".","_").upper()
+            v = _get(p,obj)
 
-                fh.write(ss)
+            ss = "%s=%s"%(o,v)
+            if(re.search(r"\s",v)):
+                ss = "%s=\"%s\""%(o,v)
+
+            print(ss)
 
 
 
