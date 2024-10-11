@@ -1,0 +1,16 @@
+name: JNW_DRC
+
+on:
+  workflow_call:
+
+jobs:
+  gds:
+    runs-on: ubuntu-latest
+    container:
+      image: wulffern/aicex:24.04_0.1.4
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run DRC
+        uses: analogicus/jnw-actions/drc@main
