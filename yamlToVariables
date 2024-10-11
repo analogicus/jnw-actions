@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import re
+import click
+import yaml
+import os
+
+def _get(path,data=None):
+    if(data is None):
+        return None
+    if("." in path):
+        arr = path.split(".")
+        ndata = _get(arr[0],data)
+        return _get(".".join(arr[1:]),ndata)
+    elif(path in data):
+        return data[path]
+    else:
+        print(f"Warning: Could not find {path} in {data} ")
+        return None
+
+@click.command()
+@click.argument("yfile")
+@click.option("--paths",default=".",help="What path to output")
+def cli(yfile,paths):
+    with open(yfile) as fi:
+        obj = yaml.safe_load(fi)
+
+        for p in paths.split(","):
+            o = p.replace(".","_").upper()
+            v = _get(p,obj)
+
+            ss = "%s=%s"%(o,v)
+            if(re.search(r"\s",v)):
+                ss = "%s=\"%s\""%(o,v)
+
+            print(ss)
+
+
+
+
+if(__name__ == '__main__'):
+    cli()
