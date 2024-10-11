@@ -34,6 +34,7 @@ runs:
           CELL: ${{ steps.info.outputs.cell }}
           LIBRARY: ${{ steps.info.outputs.library }}
         run: |
+          cd work
           bash ${GITHUB_ACTION_PATH}/../checkForSch
           bash ${GITHUB_ACTION_PATH}/../checkForLay
 
