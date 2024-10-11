@@ -34,8 +34,8 @@ runs:
           CELL: ${{ steps.info.outputs.cell }}
           LIBRARY: ${{ steps.info.outputs.library }}
         run: |
-          ${GITHUB_ACTION_PATH}/../checkForSch
-          ${GITHUB_ACTION_PATH}/../checkForLay
+          bash ${GITHUB_ACTION_PATH}/../checkForSch
+          bash ${GITHUB_ACTION_PATH}/../checkForLay
 
       - name: Run LVS
         shell: bash
