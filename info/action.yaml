@@ -1,10 +1,10 @@
 name: 'Analogicus Janeway Read library'
 description: 'Read library and cell from info.yaml'
 
-outputs:
-      library: ${{ steps.info.outputs.LIBRARY }}
-      cell: ${{ steps.info.outputs.CELL }}
 runs:
+    outputs:
+        library: ${{ steps.info.outputs.LIBRARY }}
+        cell: ${{ steps.info.outputs.CELL }}
     using: 'composite'
     steps:
       - name: Read library
