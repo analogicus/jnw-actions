@@ -3,12 +3,12 @@ description: 'This action runs a simulation, and posts to summary'
 
 
 inputs:
-  command:
-    description: 'Command to run'
+  makestr:
+    description: 'make <makestr>'
     required: true
     type: string
   folder:
-    description: 'Where to run the command'
+    description: 'Where to run make'
     required: true
     type: string
 
@@ -19,7 +19,7 @@ runs:
       - name: Run simulation
         shell: bash
         env:
-          COMMAND: ${{ inputs.command }}
+          MAKSTR: ${{ inputs.makstr }}
           FOLDER: ${{ inputs.folder }}
 
         run: |
@@ -27,9 +27,7 @@ runs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
           cd $FOLDER
-          echo $COMMAND
-          pwd
-          $COMMAND >> "$GITHUB_STEP_SUMMARY"
+          make $MAKESTR | tee "$GITHUB_SUMMARY"
       - name: Archive simulation results
         uses: actions/upload-artifact@v4
         with:
