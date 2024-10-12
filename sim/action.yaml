@@ -1,0 +1,36 @@
+name: 'Analogicus Janeway Simulation action'
+description: 'This action runs a simulation, and posts to summary'
+
+
+inputs:
+  command:
+    description: 'Command to run'
+    required: true
+    type: string
+  folder:
+    description: 'Where to run the command'
+    required: true
+    type: string
+
+
+runs:
+    using: 'composite'
+    steps:
+      - name: Run simulation
+        shell: bash
+        env:
+          COMMAND: ${{ inputs.command }}
+          FOLDER: ${{ inputs.folder }}
+
+        run: |
+          export PDK_ROOT=/opt/pdk/share/pdk
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "/opt/eda/bin" >> $GITHUB_PATH
+          cd $FOLDER
+          $COMMAND >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive simulation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results
+          path: |
+            ${{ inputs.folder }}/results
