@@ -22,4 +22,4 @@ runs:
         with:
           name: results
           path: |
-            ${{ inputs.folder }}/results
+            _results
