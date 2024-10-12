@@ -27,6 +27,8 @@ runs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
           cd $FOLDER
+          echo $COMMAND
+          pwd
           $COMMAND >> "$GITHUB_STEP_SUMMARY"
       - name: Archive simulation results
         uses: actions/upload-artifact@v4
