@@ -16,7 +16,7 @@ runs:
           export PDK_ROOT=/opt/pdk/share/pdk
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
-          python3 tech/scripts/runsim --info info.yaml | tee "$GITHUB_STEP_SUMMARY"
+          python3 tech/script/runsim --info info.yaml | tee "$GITHUB_STEP_SUMMARY"
       - name: Archive simulation results
         uses: actions/upload-artifact@v4
         with:
