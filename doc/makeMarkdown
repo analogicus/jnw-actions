@@ -5,7 +5,8 @@ import yaml
 import os
 import subprocess
 import glob
-import urllib
+#import urllib
+from urllib.parse import quote
 
 class MakeDocs():
 
@@ -165,7 +166,7 @@ title: {title}
 
             url = "https://" + self._get("url",self.options) + f"/{library_lc}/assets/{cell}.gds.gltf"
             print(url)
-            urlgltf = urllib.parse.quote(url)
+            urlgltf = quote(url)
 
             buff += f"""
 
