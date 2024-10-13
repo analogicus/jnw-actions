@@ -18,3 +18,4 @@ python3 ${DOC_SCRIPT_PATH}/makeMarkdown --info ../info.yaml
 test -d ../media && cp -r ../media .
 cp ../README.md ../docs/index.md
 test -d ../documents/* && cp -r ../documents/* .
+exit 0
