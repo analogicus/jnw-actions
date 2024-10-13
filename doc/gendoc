@@ -7,7 +7,10 @@ if [[ -z "${GITHUB_ACTION_PATH}" ]]; then
 else
     echo "INFO: found github path"
     export DOC_SCRIPT_PATH=${GITHUB_ACTION_PATH}
+
 fi
+
+echo "INFO: Using scripts in ${DOC_SCRIPT_PATH}"
 
 test -d docs ||  cicsim template --dname docs ${DOC_SCRIPT_PATH}/template.yaml info.yaml
 cd docs
