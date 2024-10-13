@@ -18,10 +18,6 @@ copy:
   - Gemfile.lock
   - 404.html
 
-
-do:
-  - cd ../work; make doc
-
 echo: |
   Made docs
   Good luck with ${IP}.
