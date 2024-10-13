@@ -28,8 +28,8 @@ runs:
           cd docs
           python3 ${GITHUB_ACTION_PATH}/gendoc --info ../info.yaml
           test -d ../media && cp -r ../media .
-	        cp ../README.md ../docs/index.md
-	        test -d ../documents && cp -r ../documents .
+          cp ../README.md ../docs/index.md
+          test -d ../documents && cp -r ../documents .
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll
