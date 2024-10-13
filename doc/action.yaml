@@ -24,7 +24,7 @@ runs:
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/eda/lib
           git config --global --add safe.directory `pwd`
           export PATH=/opt/eda/bin:$HOME/.local/bin:$PATH
-          source ${GITHUB_ACTION_PATH}/gendoc
+          bash  ${GITHUB_ACTION_PATH}/gendoc
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

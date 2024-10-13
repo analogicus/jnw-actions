@@ -13,9 +13,11 @@ fi
 echo "INFO: Using scripts in ${DOC_SCRIPT_PATH}"
 
 test -d docs ||  cicsim template --dname docs ${DOC_SCRIPT_PATH}/template.yaml info.yaml
-cd docs
+cd work
 python3 ${DOC_SCRIPT_PATH}/makeMarkdown --info ../info.yaml
-test -d ../media && cp -r ../media .
-cp ../README.md ../docs/index.md
-test -d ../documents/* && cp -r ../documents/* .
+cd ..
+test -d media && cp -r media docs/
+cp README.md docs/index.md
+test -d documents/* && cp -r documents/* docs/
+
 exit 0
