@@ -10,6 +10,7 @@ import glob
 @click.command()
 @click.option("--info",default="../info.yaml",help="Default info file")
 def cli(info):
+    exitStatus = 0
     with open(info) as fi:
         obj = yaml.safe_load(fi)
 
@@ -23,6 +24,10 @@ def cli(info):
             print(f"Running `{cmd}`")
             print("```bash\n\n")
             logs = subprocess.getoutput(f"cd sim/{tb} && {cmd}")
+
+            if(re.search("Error:",logs,flags=re.I)):
+                exitStatus = 1
+
             print(logs)
             print("```\n\n")
             htmls = glob.glob(f"sim/{tb}/results/*.html")
@@ -33,10 +38,10 @@ def cli(info):
 
             os.system(f"cp -r sim/{tb}/results _results/{tb}")
 
-
+    exit(exitStatus)
 
 
 
 
 if(__name__ == "__main__"):
-    cli()
+   cli()
