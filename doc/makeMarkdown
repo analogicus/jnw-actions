@@ -156,7 +156,7 @@ title: {title}
 
         buff += f"""
 
-        [GDS](/{library_lc}/assets/{cell}.gds)
+[GDS](/{library_lc}/assets/{cell}.gds)
 
         """
 
@@ -168,9 +168,10 @@ title: {title}
             urlgltf = urllib.parse.quote(url)
 
             buff += f"""
-        [GLTF](/{library_lc}/assets/{cell}.gds.gltf)
 
-        [3d Model](https://gds-viewer.tinytapeout.com/?model={urlgltf})
+[GLTF](/{library_lc}/assets/{cell}.gds.gltf)
+
+[3d Model](https://gds-viewer.tinytapeout.com/?model={urlgltf})
 
         """
         with open(self.docdir + os.path.sep + "layout.md","w") as fo:
