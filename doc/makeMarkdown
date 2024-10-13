@@ -178,11 +178,29 @@ title: {title}
         with open(self.docdir + os.path.sep + "layout.md","w") as fo:
             fo.write(buff)
 
+    def copyReadme(self):
+
+
+
+        if(not os.path.exists("../README.md")):
+            return
+        url = "https://" + self._get("url",self.options) + "/" + self._get("library",self.options).lower()
+        with open("../docs/index.md","w") as fo:
+            fo.write("---\n")
+            fo.write("layout: home\n")
+            fo.write("---\n\n")
+            with open("../README.md") as fi:
+                for line in fi:
+                    line = re.sub("../../actions",f"{url}/actions",line)
+                    fo.write(line)
+
+
     def run(self):
 
         self.makeInstall()
         self.makeSchematics()
         self.makeGds()
+        self.copyReadme()
 
         pass
 
