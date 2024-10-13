@@ -36,6 +36,10 @@ def cli(info):
                 print("\n\n### " + b + "\n")
                 print(subprocess.getoutput(f"pandoc -t gfm {f} -o -"))
 
+            print("\n\n")
+            if(os.path.exists(f"sim/{tb}/README.md")):
+                with open(f"sim/{tb}/README.md") as fi:
+                    print(fi.read())
             os.system(f"cp -r sim/{tb}/results _results/{tb}")
 
     exit(exitStatus)
