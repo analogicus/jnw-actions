@@ -25,7 +25,6 @@ runs:
           git config --global --add safe.directory `pwd`
           export PATH=/opt/eda/bin:$HOME/.local/bin:$PATH
           bash  ${GITHUB_ACTION_PATH}/gendoc
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build with Jekyll

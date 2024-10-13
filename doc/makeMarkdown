@@ -5,6 +5,7 @@ import yaml
 import os
 import subprocess
 import glob
+import urllib
 
 class MakeDocs():
 
@@ -137,10 +138,47 @@ title: {title}
 
         pass
 
+    def makeGds(self):
+        cell = self._get("cell",self.options)
+        library = self._get("library",self.options)
+
+        #- Skip layout if it don't exist
+        if(not os.path.exists(f"../design/{library}/{cell}.mag")):
+            return
+
+        os.system(f"make gds CELL={cell} LIB={library}")
+        os.system(f"cp gds/{cell}.gds ../docs/assets")
+        os.system(f"test -d ../../GDS2glTF && python3 ../../GDS2glTF/gds2gltf.py gds/{cell}.gds")
+
+        buff = self.header.replace("{title}","Layout")
+
+        buff += f"""
+
+        [GDS](/{library}/assets/{cell}.gds)
+
+        """
+
+        if(os.path.exists(f"gds/{cell}.gds.gltf")):
+            os.system(f"cp gds/{cell}.gds.gltf ../docs/assets/")
+
+            url = "https://" + self._get("url",self.options) + f"/{library}/assets/{cell}.gds.gltf"
+            print(url)
+            urlgltf = urllib.parse.quote(url)
+
+            buff += f"""
+        [GLTF](/{library}/assets/{cell}.gds.gltf)
+
+        [3d Model](https://gds-viewer.tinytapeout.com/?model={urlgltf})
+
+        """
+        with open(self.docdir + os.path.sep + "layout.md","w") as fo:
+            fo.write(buff)
+
     def run(self):
 
         self.makeInstall()
         self.makeSchematics()
+        self.makeGds()
 
         pass
 
