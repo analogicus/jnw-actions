@@ -11,6 +11,9 @@ runs:
         shell: bash
         run: |
           python3 -m pip install cicconf
+
+          echo -e "\nGDS2glTF:\n  remote: git@github.com:wulffern/GDS2glTF.git\n  revision: main" >> config.yaml
+
           cicconf --rundir ../ --config config.yaml clone --https
       - name: Install cicsim
         shell: bash

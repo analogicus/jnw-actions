@@ -152,21 +152,23 @@ title: {title}
 
         buff = self.header.replace("{title}","Layout")
 
+        library_lc = library.lower()
+
         buff += f"""
 
-        [GDS](/{library}/assets/{cell}.gds)
+        [GDS](/{library_lc}/assets/{cell}.gds)
 
         """
 
         if(os.path.exists(f"gds/{cell}.gds.gltf")):
             os.system(f"cp gds/{cell}.gds.gltf ../docs/assets/")
 
-            url = "https://" + self._get("url",self.options) + f"/{library}/assets/{cell}.gds.gltf"
+            url = "https://" + self._get("url",self.options) + f"/{library_lc}/assets/{cell}.gds.gltf"
             print(url)
             urlgltf = urllib.parse.quote(url)
 
             buff += f"""
-        [GLTF](/{library}/assets/{cell}.gds.gltf)
+        [GLTF](/{library_lc}/assets/{cell}.gds.gltf)
 
         [3d Model](https://gds-viewer.tinytapeout.com/?model={urlgltf})
 
