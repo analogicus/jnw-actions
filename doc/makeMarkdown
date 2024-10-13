@@ -184,7 +184,7 @@ title: {title}
 
         if(not os.path.exists("../README.md")):
             return
-        url = "https://" + self._get("url",self.options) + "/" + self._get("library",self.options).lower()
+        url = "https://github.com/" + self._get("github",self.options) + "/" + self._get("library",self.options).lower()
         with open("../docs/index.md","w") as fo:
             fo.write("---\n")
             fo.write("layout: home\n")
