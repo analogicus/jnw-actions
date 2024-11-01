@@ -2,11 +2,6 @@ name: Docs
 
 on:
   workflow_call:
-    paths:
-      - '**.md'
-      - 'documents/**'
-      - 'media/**'
-      - 'design/**'
 
 permissions:
   contents: read
