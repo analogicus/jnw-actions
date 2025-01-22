@@ -13,6 +13,7 @@ fi
 echo "INFO: Using scripts in ${DOC_SCRIPT_PATH}"
 
 test -d docs ||  cicsim template --dname docs ${DOC_SCRIPT_PATH}/template.yaml info.yaml
+python3 ${DOC_SCRIPT_PATH}/fixBaseUrl.py
 cd work
 python3 ${DOC_SCRIPT_PATH}/makeMarkdown --info ../info.yaml
 cd ..
