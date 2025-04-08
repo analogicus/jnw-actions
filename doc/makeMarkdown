@@ -193,22 +193,23 @@ title: {title}
             with open("../README.md") as fi:
                 for line in fi:
 
-                    line = re.sub("../../actions",f"{url}/actions",line)
-
-                    m = re.search(r"!\[[^\]]*\]\(([^\)]+)\)",line)
-                    if(m):
-                        ourl = m.groups()[0]
-                        if(not (ourl.startswith("http://") or ourl.startswith("https://") or ourl.startswith("www") )) :
-                            line = line.replace("(" + ourl + ")", "(" + rurl+ ourl + ")")
-
+                    if(re.search("../../actions",line)):
+                        line = re.sub("../../actions",f"{url}/actions",line)
                     else:
-                        m = re.search(r"\[[^\]]*\]\(([^\)]+)\)",line)
+                        m = re.search(r"!\[[^\]]*\]\(([^\)]+)\)",line)
                         if(m):
                             ourl = m.groups()[0]
                             if(not (ourl.startswith("http://") or ourl.startswith("https://") or ourl.startswith("www") )) :
-                                line = line.replace("(" + ourl + ")", "(" + url + "/tree/main/" +   ourl + ")")
-                                line = re.sub("/+","/",line)
-                                print(line)
+                                line = line.replace("(" + ourl + ")", "(" + rurl+ ourl + ")")
+
+                        else:
+                            m = re.search(r"\[[^\]]*\]\(([^\)]+)\)",line)
+                            if(m):
+                                ourl = m.groups()[0]
+                                if(not (ourl.startswith("http://") or ourl.startswith("https://") or ourl.startswith("www") )) :
+                                    line = line.replace("(" + ourl + ")", "(" + url + "/tree/main/" +   ourl + ")")
+                                    line = re.sub("/+","/",line)
+
 
 
                     
