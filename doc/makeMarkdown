@@ -193,9 +193,7 @@ title: {title}
             with open("../README.md") as fi:
                 for line in fi:
 
-
                     line = re.sub("../../actions",f"{url}/actions",line)
-
 
                     m = re.search(r"!\[[^\]]*\]\(([^\)]+)\)",line)
                     if(m):
@@ -207,7 +205,7 @@ title: {title}
                         m = re.search(r"\[[^\]]*\]\(([^\)]+)\)",line)
                         if(m):
                             ourl = m.groups()[0]
-                            if(not (ourl.startswith("http://") or ourl.startswith("www") )) :
+                            if(not (ourl.startswith("http://") or ourl.startswith("https://") or ourl.startswith("www") )) :
                                 line = line.replace("(" + ourl + ")", "(" + url + "/tree/main/" +   ourl + ")")
                                 line = re.sub("/+","/",line)
                                 print(line)
