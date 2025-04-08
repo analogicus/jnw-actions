@@ -198,7 +198,7 @@ title: {title}
                     m = re.search(r"!\[[^\]]*\]\(([^\)]+)\)",line)
                     if(m):
                         ourl = m.groups()[0]
-                        if(not (ourl.startswith("http://") or ourl.startswith("www") )) :
+                        if(not (ourl.startswith("http://") or ourl.startswith("https://") or ourl.startswith("www") )) :
                             line = line.replace("(" + ourl + ")", "(" + rurl+ ourl + ")")
 
                     else:
