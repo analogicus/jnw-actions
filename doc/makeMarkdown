@@ -185,13 +185,35 @@ title: {title}
         if(not os.path.exists("../README.md")):
             return
         url = "https://github.com/" + self._get("github",self.options) + "/" + self._get("library",self.options).lower()
+        rurl = "https://raw.githubusercontent.com/"  + self._get("github",self.options) + "/" + self._get("library",self.options) +  "/refs/heads/main/"
         with open("../docs/index.md","w") as fo:
             fo.write("---\n")
             fo.write("layout: home\n")
             fo.write("---\n\n")
             with open("../README.md") as fi:
                 for line in fi:
+
+
                     line = re.sub("../../actions",f"{url}/actions",line)
+
+
+                    m = re.search(r"!\[[^\]]*\]\(([^\)]+)\)",line)
+                    if(m):
+                        ourl = m.groups()[0]
+                        if(not (ourl.startswith("http://") or ourl.startswith("www") )) :
+                            line = line.replace("(" + ourl + ")", "(" + rurl+ ourl + ")")
+
+                    else:
+                        m = re.search(r"\[[^\]]*\]\(([^\)]+)\)",line)
+                        if(m):
+                            ourl = m.groups()[0]
+                            if(not (ourl.startswith("http://") or ourl.startswith("www") )) :
+                                line = line.replace("(" + ourl + ")", "(" + url + "/tree/main/" +   ourl + ")")
+                                line = re.sub("/+","/",line)
+                                print(line)
+
+
+                    
                     fo.write(line)
 
 
