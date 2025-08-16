@@ -48,7 +48,7 @@ runs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "/opt/eda/bin" >> $GITHUB_PATH
           cd work
-          make xlvs CELL=$CELL LIB=$LIBRARY
+          make cdl lvs CELL=$CELL LIB=$LIBRARY
           echo -e "\n\n# LVS\n\n" >> $GITHUB_STEP_SUMMARY
           echo -e "\`\`\`bash\n" >> $GITHUB_STEP_SUMMARY
           cat lvs/${CELL}_lvs.log >> $GITHUB_STEP_SUMMARY
