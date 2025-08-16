@@ -7,6 +7,7 @@ import os
 import subprocess
 import glob
 
+
 @click.command()
 @click.option("--info",default="../info.yaml",help="Default info file")
 def cli(info):
