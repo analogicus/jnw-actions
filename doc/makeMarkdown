@@ -102,7 +102,7 @@ title: {title}
         if(os.path.exists(readme)):
             with open(readme) as fi1:
                 mdinsert = fi1.read()
-                mdinsert.replace("results/","assets/")
+                mdinsert = mdinsert.replace("results/",f"assets/{cellname}/")
             if(os.path.exists(results)):
                 resultspath = self.docdir + os.path.sep + "assets" + os.path.sep + cellname + os.path.sep
                 os.makedirs(resultspath,exist_ok=True)
