@@ -118,7 +118,9 @@ title: {title}
         mdinsert = ""
         if(os.path.exists(readme)):
             try:
-                result = subprocess.run(["git","log","-1","--format=\"%h %ad \"","--","../sim/JNW_BIAS/README.md"],capture_output=True,text=True)
+                cmd = ["git","log","-1","--format=\"%h %ad \"","--",f"../sim/{cell}/README.md"]
+                print(" ".join(cmd))
+                result = subprocess.run(cmd,capture_output=True,text=True)
                 mdinsert += "README.md: " + result.stdout + "\n\n"
                 print(result.stdout)
             except Exception as e:
