@@ -90,14 +90,26 @@ title: {title}
 
         os.system(f"cp plot.svg {pathsvg} ")
         mdbuff = ""
+        mdinsert = ""
         if(os.path.exists(md)):
             with open(md) as fi:
-                mdbuff = fi.read()
+                for line in fi:
+                    if(re.search("<!--insert_end:",line)):
+                        mdpath =  line.replace("<!--insert_end: ","").replace("-->","").strip()
+                        if(os.path.exists(mdpath)):
+                            with open(mdpath) as fi1:
+                                mdinsert = fi1.read()
+
+
+                    else:
+                        mdbuff += line
 
         buff = f"""### {cell}
 {mdbuff}
 
  ![]({svg})
+
+{mdinsert}
 
 \n"""
         return buff
