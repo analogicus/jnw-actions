@@ -96,19 +96,7 @@ title: {title}
                 for line in fi:
                     mdbuff =fi.read()
 
-        cellname = os.path.basename(cellpath)
-        readme = "../sim/" + cellname + "/README.md"
-        results = "../sim/" + cellname + "/results"
-        if(os.path.exists(readme)):
-            with open(readme) as fi1:
-                mdinsert = fi1.read()
-                mdinsert = mdinsert.replace("results/",f"assets/{cellname}/")
-            if(os.path.exists(results)):
-                resultspath = self.docdir + os.path.sep + "assets" + os.path.sep + cellname + os.path.sep
-                os.makedirs(resultspath,exist_ok=True)
-                cmd = f"cp {results}/*.html {resultspath}"
-                print(cmd)
-                os.system(cmd)
+
 
 
         buff = f"""### {cell}
@@ -116,11 +104,47 @@ title: {title}
 
  ![]({svg})
 
+
+
+\n"""
+        return buff
+        pass
+
+    def makeOneSimulation(self,cellpath):
+
+        cell = os.path.basename(cellpath)
+        readme = "../sim/" + cell + "/README.md"
+        results = "../sim/" + cell + "/results"
+        mdinsert = ""
+        if(os.path.exists(readme)):
+            try:
+                result = subprocess.run(["git","log","-1","--format=\"%h %ad \"","--","../sim/JNW_BIAS/README.md"],capture_output=True,text=True)
+                mdinsert += "README.md: " + result.stdout + "\n\n"
+                print(result.stdout)
+            except Exception as e:
+                print(e)
+                pass
+
+            with open(readme) as fi1:
+                mdinsert += fi1.read()
+            mdinsert = mdinsert.replace("results/",f"assets/{cell}/")
+
+
+            if(os.path.exists(results)):
+                resultspath = self.docdir + os.path.sep + "assets" + os.path.sep + cell + os.path.sep
+                os.makedirs(resultspath,exist_ok=True)
+                cmd = f"cp {results}/*.html {resultspath}"
+                print(cmd)
+                os.system(cmd)
+
+        buff = f"""### {cell}
+
 {mdinsert}
 
 \n"""
         return buff
         pass
+
     
     def makeSchematics(self):
 
@@ -135,25 +159,40 @@ title: {title}
 * TOC
 {:toc }
 \n\n"""
+
+        simbuff = self.header.replace("{title}","Simulations")
+
+        simbuff += """
+* TOC
+{:toc }
+\n\n"""
+
         #- Check for Markdowns
         for lib in libraries:
             cells = libraries[lib]
             buff += f"## {lib}\n\n"
+            simbuff +=f"## {lib}\n\n"
             mark = glob.glob(f"../design/{lib}/*.md")
             if(len(cells) > 0):
                 for c in cells:
                     buff += self.makeOneSchematic(f"../design/{lib}/{c}")
+                    simbuff += self.makeOneSimulation(f"../design/{lib}/{c}")
             #- No markdowns, write all schematics
             elif(len(mark) == 0):
                 sch = glob.glob(f"../design/{lib}/*.sch")
                 for s in sch:
                     buff += self.makeOneSchematic(s.replace(".sch",""))
+                    simbuff += self.makeOneSimulation(f"../design/{lib}/{c}")
             else:
                 for s in mark:
                     buff += self.makeOneSchematic(s.replace(".md",""))
+                    simbuff += self.makeOneSimulation(f"../design/{lib}/{c}")
 
         with open(self.docdir + os.path.sep + "schematic.md","w") as fo:
             fo.write(buff)
+
+        with open(self.docdir + os.path.sep + "simulations.md","w") as fo:
+            fo.write(simbuff)
 
 
         pass
