@@ -94,15 +94,22 @@ title: {title}
         if(os.path.exists(md)):
             with open(md) as fi:
                 for line in fi:
-                    if(re.search("<!--insert_end:",line)):
-                        mdpath =  line.replace("<!--insert_end: ","").replace("-->","").strip()
-                        if(os.path.exists(mdpath)):
-                            with open(mdpath) as fi1:
-                                mdinsert = fi1.read()
+                    mdbuff =fi.read()
 
+        cellname = os.path.basename(cellpath)
+        readme = "../sim/" + cellname + "/README.md"
+        results = "../sim/" + cellname + "/results"
+        if(os.path.exists(readme)):
+            with open(readme) as fi1:
+                mdinsert = fi1.read()
+                mdinsert.replace("results/","assets/")
+            if(os.path.exists(results)):
+                resultspath = self.docdir + os.path.sep + "assets" + os.path.sep + cellname + os.path.sep
+                os.makedirs(resultspath,exist_ok=True)
+                cmd = f"cp {results}/*.html {resultspath}"
+                print(cmd)
+                os.system(cmd)
 
-                    else:
-                        mdbuff += line
 
         buff = f"""### {cell}
 {mdbuff}
