@@ -8,6 +8,35 @@ import glob
 #import urllib
 from urllib.parse import quote
 
+#-
+# LaTeX/PDF generation (aic2026-style): template is pdf/short_tmplt.tex.
+# Pipeline: .md -> pandoc -> .latex -> fix_svg.py -> *_fiximg.tex; then
+# short_tmplt.tex + __title__, __file__, __version__ -> standalone .tex
+#-
+LATEX_DEFAULT_TEMPLATE = "short_tmplt.tex"
+LATEX_PANDOC_OPTS = [
+    "--citeproc",
+    "--bibliography=pdf/aic.bib",
+    "--csl=pdf/ieee-with-url.csl",
+]
+LATEX_VERSION_DEFAULT = "Built from docs"
+
+# Unicode -> LaTeX inline math for pdflatex (no newunicodechar needed)
+UNICODE_TO_LATEX = [
+    ("\u03a9", r"$\Omega$"),   # Omega
+    ("\u03bc", r"$\mu$"),      # mu
+    ("\u00b0", r"$^\circ$"),   # degree
+    ("\u00b1", r"$\pm$"),      # plus-minus
+    ("\u00d7", r"$\times$"),   # times
+    ("\u2264", r"$\le$"),      # le
+    ("\u2265", r"$\ge$"),     # ge
+]
+
+def unicode_to_latex(text):
+    for u, latex in UNICODE_TO_LATEX:
+        text = text.replace(u, latex)
+    return text
+
 class MakeDocs():
 
     def __init__(self,infofile):
@@ -237,6 +266,169 @@ title: {title}
         with open(self.docdir + os.path.sep + "layout.md","w") as fo:
             fo.write(buff)
 
+    def _strip_frontmatter(self, text):
+        """Remove Jekyll-style --- ... --- block at start of markdown."""
+        if not text.strip().startswith("---"):
+            return text
+        lines = text.split("\n")
+        start = 0
+        for i, line in enumerate(lines):
+            if i > 0 and line.strip() == "---":
+                start = i + 1
+                break
+        return "\n".join(lines[start:])
+
+    def _doc_sections(self):
+        """Return list of (title, path) for docs to combine, in order. Path relative to docdir."""
+        order = [
+            ("index.md", "Overview"),
+            ("install.md", "Install"),
+            ("schematic.md", "Schematics"),
+            ("simulations.md", "Simulations"),
+            ("layout.md", "Layout"),
+        ]
+        out = []
+        for fname, title in order:
+            path = self.docdir + os.path.sep + fname
+            if os.path.exists(path):
+                out.append((title, path))
+        return out
+
+    def makeCombinedMarkdown(self):
+        """Write combined.md: README (index) + install + schematic + simulations + layout."""
+        sections = self._doc_sections()
+        if not sections:
+            return
+        combined_path = self.docdir + os.path.sep + "combined.md"
+        with open(combined_path, "w") as fo:
+            for i, (title, path) in enumerate(sections):
+                with open(path) as fi:
+                    content = self._strip_frontmatter(fi.read())
+                if i > 0:
+                    fo.write("\n\n---\n\n")
+                    fo.write("## " + title + "\n\n")
+                else:
+                    if content.strip() and not content.lstrip().startswith("#"):
+                        fo.write("# " + title + "\n\n")
+                fo.write(content.strip())
+                fo.write("\n")
+        print("INFO: wrote " + combined_path)
+
+    def _svg_to_pdf_tool(self):
+        """Return (cmd_pattern, ext) for SVG→PDF: cmd_pattern has {src} {dst}. Try rsvg, inkscape, then ImageMagick."""
+        # rsvg-convert (librsvg): rsvg-convert -f pdf -o out.pdf in.svg
+        r = subprocess.run(["which", "rsvg-convert"], capture_output=True, text=True)
+        if r.returncode == 0 and r.stdout.strip():
+            return ("rsvg-convert -f pdf -o {dst} {src}", "pdf")
+        r = subprocess.run(["which", "inkscape"], capture_output=True, text=True)
+        if r.returncode == 0 and r.stdout.strip():
+            return ("inkscape {src} --export-type=pdf -o {dst}", "pdf")
+        if subprocess.run(["which", "magick"], capture_output=True).returncode == 0:
+            return ("magick -density 150 {src} {dst}", "pdf")
+        if subprocess.run(["which", "convert"], capture_output=True).returncode == 0:
+            return ("convert -density 150 {src} {dst}", "pdf")
+        return (None, "pdf")
+
+    def _convert_svg_to_pdf(self, docdir, src_path, out_dir):
+        """Convert one SVG to PDF in out_dir. Return path relative to docdir for the PDF, or None."""
+        if not os.path.isabs(src_path):
+            src_abs = os.path.normpath(os.path.join(docdir, src_path))
+        else:
+            src_abs = src_path
+        if not os.path.exists(src_abs) or not src_abs.lower().endswith(".svg"):
+            return None
+        os.makedirs(out_dir, exist_ok=True)
+        # Unique name: path with / replaced by _ so different lib/cell.svg don't clash
+        path_clean = src_path.split("?")[0].strip().replace("\\", "/")
+        if path_clean.lower().endswith(".svg"):
+            path_clean = path_clean[:-4]
+        safe_name = path_clean.replace("/", "_") if path_clean else "figure"
+        pdf_name = safe_name + ".pdf"
+        dst_abs = os.path.join(out_dir, pdf_name)
+        tool, _ = self._svg_to_pdf_tool()
+        if not tool:
+            print("Warning: no SVG→PDF tool (rsvg-convert, inkscape, or ImageMagick); skip " + src_path)
+            return None
+        cmd = tool.format(src=src_abs, dst=dst_abs)
+        ret = os.system(cmd)
+        if ret != 0:
+            print("Warning: conversion failed: " + cmd)
+            return None
+        # Return path relative to docdir for use in markdown
+        rel = os.path.relpath(dst_abs, docdir)
+        return rel.replace("\\", "/")
+
+    def makeCombinedLatex(self, combined_path=None, out_path=None):
+        """
+        From combined.md, produce combined_latex.md with SVGs converted to PDF so LaTeX can include them.
+        Image paths are rewritten to point to media_pdf/*.pdf.
+        """
+        docdir = self.docdir
+        if combined_path is None:
+            combined_path = os.path.join(docdir, "combined.md")
+        if not os.path.exists(combined_path):
+            print("Warning: combined.md not found; run makeCombinedMarkdown first.")
+            return
+        media_pdf_dir = os.path.join(docdir, "assets", "media_pdf")
+        if out_path is None:
+            out_path = os.path.join(docdir, "assets", "combined_latex.md")
+
+        with open(combined_path) as f:
+            content = f.read()
+
+        # Find all ![](...svg) or ![...](...svg)
+        img_re = re.compile(r'!\[([^\]]*)\]\(([^)]+\.svg)\)')
+        replacements = []
+        for m in img_re.finditer(content):
+            alt, path = m.group(1), m.group(2).strip()
+            path_rel = path.split("?")[0].strip()
+            pdf_rel = self._convert_svg_to_pdf(docdir, path_rel, media_pdf_dir)
+            if pdf_rel:
+                replacements.append((m.group(0), "![" + alt + "](" + pdf_rel + ")"))
+            else:
+                replacements.append((m.group(0), "\n[Image: SVG not converted]\n"))
+        for old, new in replacements:
+            content = content.replace(old, new, 1)
+
+        # Replace remote (http/https) image links with text placeholder so pdflatex
+        # does not try to \includegraphics{https://...} (it cannot fetch URLs).
+        remote_img_re = re.compile(r'!\[([^\]]*)\]\((https?://[^)]+)\)')
+        for m in remote_img_re.finditer(content):
+            alt, url = m.group(1), m.group(2)
+            placeholder = "\n[Image: %s](%s)\n" % (alt or "remote", url)
+            content = content.replace(m.group(0), placeholder, 1)
+
+        link_placeholder_re = re.compile(r'\[\s*\[Image: SVG not converted\]\s*\]\s*\(([^)]+)\)')
+        def _link_sub(m):
+            url = m.group(1)
+            if "/workflows/" in url:
+                label = url.split("/")[-1].replace(".yaml", "").replace(".yml", "")
+                return "[%s workflow](%s)" % (label.upper(), url)
+            return "[%s](%s)" % (url, url)
+        content = link_placeholder_re.sub(_link_sub, content)
+
+        content = unicode_to_latex(content)
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        with open(out_path, "w") as f:
+            f.write(content)
+        doc = self.options.get("doc") or {}
+        title = self.options.get("title") or doc.get("title") or self.options.get("library")
+        if not title and isinstance(doc.get("libraries"), dict):
+            libs = list(doc["libraries"].keys())
+            if libs:
+                title = libs[0]
+        title = title or "Documentation"
+        title_path = os.path.join(os.path.dirname(out_path), "pdf_title.txt")
+        with open(title_path, "w") as tf:
+            tf.write(title)
+        print("INFO: wrote " + out_path + " (SVG→PDF for LaTeX)")
+
+    def run_combined_latex(self):
+        """Ensure combined.md exists, then produce combined_latex.md with SVGs as PDFs."""
+        if not os.path.exists(self.docdir + os.path.sep + "combined.md"):
+            self.makeCombinedMarkdown()
+        self.makeCombinedLatex()
+
     def copyReadme(self):
 
 
@@ -282,14 +474,161 @@ title: {title}
         self.makeSchematics()
         self.makeGds()
         self.copyReadme()
+        self.makeCombinedMarkdown()
 
         pass
 
-@click.command()
-@click.option("--info",default="../info.yaml",help="Default info file")
-def cli(info):
+    #- -------- LaTeX / standalone PDF (aic2026-style) --------
+    def _latex_config(self):
+        """Return doc.latex config dict or None if not configured."""
+        return self._get("doc.latex", self.options)
+
+    def _latex_basename(self, path_or_basename):
+        """Normalize to file basename without .md (e.g. l00_jayn)."""
+        base = path_or_basename.replace("\\", "/").strip()
+        if base.endswith(".md"):
+            base = base[:-3]
+        return os.path.basename(base)
+
+    def _latex_fiximg_name(self, basename):
+        """Pandoc/fix_svg style: lowercase, spaces to underscores -> name_fiximg.tex."""
+        s = basename.replace("-", " ").replace("_", " ")
+        s = "_".join(s.split()).lower()
+        return s + "_fiximg.tex"
+
+    def _latex_title_from_config(self, basename):
+        titles = self._get("doc.latex.titles", self.options)
+        if titles and isinstance(titles, dict) and basename in titles:
+            return titles[basename]
+        return basename.replace("_", " ")
+
+    def makeLatexCommands(self, run_pandoc=False, run_tex=False, makefile=False):
+        """
+        Generate pandoc commands and/or full .tex from template.
+        Config (doc.latex): template_path, output_dir, sources, bibliography, csl, version_tex, titles.
+        """
+        cfg = self._latex_config()
+        if not cfg:
+            print("Warning: doc.latex not set in info file; no LaTeX generation.")
+            return
+
+        output_dir = cfg.get("output_dir", "pdf")
+        template_path = cfg.get("template_path") or LATEX_DEFAULT_TEMPLATE
+        sources = cfg.get("sources") or []
+        bibliography = cfg.get("bibliography", "pdf/aic.bib")
+        csl = cfg.get("csl", "pdf/ieee-with-url.csl")
+        version_tex_path = cfg.get("version_tex")
+        version_str = LATEX_VERSION_DEFAULT
+        if version_tex_path and os.path.exists(version_tex_path):
+            with open(version_tex_path) as f:
+                version_str = f.read().strip()
+
+        if not sources:
+            print("Warning: doc.latex.sources is empty; nothing to generate.")
+            return
+
+        os.makedirs(output_dir, exist_ok=True)
+        docdir = getattr(self, "docdir", "../docs")
+
+        for src in sources:
+            basename = self._latex_basename(src)
+            if not basename:
+                continue
+            md_path = src if src.endswith(".md") else src + ".md"
+            if not os.path.isabs(md_path) and not os.path.exists(md_path):
+                alt = os.path.join(docdir, md_path)
+                if os.path.exists(alt):
+                    md_path = alt
+                elif os.path.exists(os.path.join(output_dir, basename + ".md")):
+                    md_path = os.path.join(output_dir, basename + ".md")
+            if not os.path.exists(md_path):
+                print("Warning: skip %s: %s not found." % (basename, md_path))
+                continue
+
+            title = self._latex_title_from_config(basename)
+            fiximg_tex = self._latex_fiximg_name(basename)
+            latex_out = os.path.join(output_dir, basename + ".latex")
+            tex_out = os.path.join(output_dir, basename + ".tex")
+
+            pandoc_cmd = (
+                "pandoc --citeproc --bibliography=%s --csl=%s -o %s %s"
+                % (bibliography, csl, latex_out, md_path)
+            )
+
+            if makefile:
+                print("\n# %s.tex" % basename)
+                print("%s/%s.latex: %s" % (output_dir, basename, md_path))
+                print("\t%s" % pandoc_cmd)
+                print("# Then: fix images (e.g. fix_svg.py), then fill %s with __title__=%s __file__=%s" % (
+                    template_path, title, fiximg_tex.replace(".tex", "")))
+                continue
+
+            if run_pandoc:
+                print("INFO:", pandoc_cmd)
+                ret = os.system(pandoc_cmd)
+                if ret != 0:
+                    print("Warning: pandoc failed for %s" % basename)
+                    continue
+
+            if not run_tex:
+                continue
+
+            if not os.path.exists(template_path):
+                tpath = os.path.join(output_dir, os.path.basename(template_path))
+                if os.path.exists(tpath):
+                    template_path = tpath
+                else:
+                    print("Warning: template not found: %s; skip writing %s" % (template_path, tex_out))
+                    continue
+
+            with open(template_path) as f:
+                tmpl = f.read()
+            filled = (
+                tmpl.replace("__title__", title)
+                .replace("__file__", fiximg_tex.replace(".tex", ""))
+                .replace("__version__", version_str)
+            )
+            with open(tex_out, "w") as f:
+                f.write(filled)
+            print("INFO: wrote %s" % tex_out)
+
+
+@click.group(invoke_without_command=True)
+@click.option("--info", default="../info.yaml", help="Default info file")
+@click.pass_context
+def cli(ctx, info):
+    """Generate markdown docs; use 'latex' subcommand for LaTeX/PDF pipeline."""
+    if ctx.invoked_subcommand is None:
+        ctx.invoke(run, info=info)
+
+@cli.command()
+@click.option("--info", default="../info.yaml", help="Default info file")
+def run(info):
+    """Generate Jekyll-style markdown (install, schematics, simulations, layout)."""
     c = MakeDocs(info)
     c.run()
+
+@cli.command("latex")
+@click.option("--info", default="../info.yaml", help="Info file with doc.latex config")
+@click.option("--makefile", is_flag=True, help="Print Makefile fragment with pandoc and .tex targets")
+@click.option("--run", "run_commands", is_flag=True, help="Run pandoc and write .tex from template")
+def latex_cmd(info, makefile, run_commands):
+    """
+    Generate pandoc commands and/or full .tex from template (aic2026-style).
+    Template: e.g. aic2026/pdf/short_tmplt.tex (set doc.latex.template_path in info).
+    """
+    c = MakeDocs(info)
+    c.makeLatexCommands(run_pandoc=run_commands, run_tex=run_commands, makefile=makefile)
+
+@cli.command("combined-latex")
+@click.option("--info", default="../info.yaml", help="Info file")
+def combined_latex_cmd(info):
+    """
+    Build combined_latex.md from combined.md with all SVGs converted to PDF for LaTeX.
+    Requires rsvg-convert, inkscape, or ImageMagick. Run from same dir as gendoc (e.g. work/).
+    """
+    c = MakeDocs(info)
+    c.run_combined_latex()
 
 
 

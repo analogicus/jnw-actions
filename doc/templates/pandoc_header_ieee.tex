@@ -1,0 +1,26 @@
+% Two-column for everything. Same as aic2026/pdf: longtable -> scriptsize
+% tabular in center; toprule/midrule/bottomrule swallow \noalign{} and become \hline.
+\renewenvironment{longtable}{\begin{center}\scriptsize\begin{tabular}}{\end{tabular}\end{center}}
+\renewcommand{\endhead}{}
+\renewcommand{\endfirsthead}{}
+\def\endlastfoot{\hspace{0mm}}
+\renewcommand{\toprule}[2]{\hline}
+\renewcommand{\midrule}[2]{\hline}
+\renewcommand{\bottomrule}[2]{\hline}
+
+% Allow underscore _ in text (e.g. V_CTAT) so it does not trigger math mode
+\IfFileExists{underscore.sty}{\usepackage{underscore}}{}
+
+% Constrain figures/SVGs to column so they don't overflow.
+\makeatletter
+\setkeys{Gin}{width=\columnwidth,height=0.5\textheight,keepaspectratio}
+\renewcommand*\pandocbounded[1]{%
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{0.5\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\columnwidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi%
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+\makeatother
