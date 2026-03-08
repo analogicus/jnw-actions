@@ -1,5 +1,6 @@
 % Two-column for everything. Same as aic2026/pdf: longtable -> scriptsize
 % tabular in center; toprule/midrule/bottomrule swallow \noalign{} and become \hline.
+\usepackage{epstopdf}
 \renewenvironment{longtable}{\begin{center}\scriptsize\begin{tabular}}{\end{tabular}\end{center}}
 \renewcommand{\endhead}{}
 \renewcommand{\endfirsthead}{}
@@ -11,16 +12,23 @@
 % Allow underscore _ in text (e.g. V_CTAT) so it does not trigger math mode
 \IfFileExists{underscore.sty}{\usepackage{underscore}}{}
 
-% Constrain figures/SVGs to column so they don't overflow.
+% Constrain figures/SVGs to column so they don't overflow. No extra indent:
+% end previous paragraph, then start a new one inside a group with
+% \leftskip=0 and \parindent=0 so the figure sits on the true left edge.
 \makeatletter
 \setkeys{Gin}{width=\columnwidth,height=0.5\textheight,keepaspectratio}
 \renewcommand*\pandocbounded[1]{%
+  \par
+  \begingroup
+  \leftskip\z@\rightskip\z@\parindent\z@
+  \noindent
   \sbox\pandoc@box{#1}%
   \Gscale@div\@tempa{0.5\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
-  \Gscale@div\@tempb{\columnwidth}{\wd\pandoc@box}%
+  \Gscale@div\@tempb{\dimexpr\columnwidth-4pt}{\wd\pandoc@box}%
   \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi%
   \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
   \else\usebox{\pandoc@box}%
   \fi%
+  \endgroup
 }
 \makeatother

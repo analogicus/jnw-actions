@@ -314,8 +314,15 @@ title: {title}
                 fo.write("\n")
         print("INFO: wrote " + combined_path)
 
+    def _svg_to_eps_tool(self):
+        """Return (cmd_pattern, ext) for SVG→EPS: cmd_pattern has {src} {dst}. Inkscape only (EPS uses drawing bounds by default)."""
+        r = subprocess.run(["which", "inkscape"], capture_output=True, text=True)
+        if r.returncode == 0 and r.stdout.strip():
+            return ("inkscape {src} --export-type=eps -o {dst}", "eps")
+        return (None, "eps")
+
     def _svg_to_pdf_tool(self):
-        """Return (cmd_pattern, ext) for SVG→PDF: cmd_pattern has {src} {dst}. Try rsvg, inkscape, then ImageMagick."""
+        """Return (cmd_pattern, ext) for SVG→PDF: cmd_pattern has {dst} {src}. Try rsvg, inkscape, then ImageMagick."""
         # rsvg-convert (librsvg): rsvg-convert -f pdf -o out.pdf in.svg
         r = subprocess.run(["which", "rsvg-convert"], capture_output=True, text=True)
         if r.returncode == 0 and r.stdout.strip():
@@ -329,8 +336,9 @@ title: {title}
             return ("convert -density 150 {src} {dst}", "pdf")
         return (None, "pdf")
 
-    def _convert_svg_to_pdf(self, docdir, src_path, out_dir):
-        """Convert one SVG to PDF in out_dir. Return path relative to docdir for the PDF, or None."""
+    def _convert_svg_to_fig(self, docdir, src_path, out_dir):
+        """Convert one SVG to a figure for LaTeX. Prefer EPS (tight bounding box) when Inkscape is available, else PDF.
+        Return path relative to docdir for the figure, or None."""
         if not os.path.isabs(src_path):
             src_abs = os.path.normpath(os.path.join(docdir, src_path))
         else:
@@ -338,30 +346,43 @@ title: {title}
         if not os.path.exists(src_abs) or not src_abs.lower().endswith(".svg"):
             return None
         os.makedirs(out_dir, exist_ok=True)
-        # Unique name: path with / replaced by _ so different lib/cell.svg don't clash
         path_clean = src_path.split("?")[0].strip().replace("\\", "/")
         if path_clean.lower().endswith(".svg"):
             path_clean = path_clean[:-4]
         safe_name = path_clean.replace("/", "_") if path_clean else "figure"
-        pdf_name = safe_name + ".pdf"
-        dst_abs = os.path.join(out_dir, pdf_name)
-        tool, _ = self._svg_to_pdf_tool()
+
+        # Prefer EPS when available (Inkscape uses drawing bounds by default; PDF export does not).
+        tool, ext = self._svg_to_eps_tool()
+        if tool:
+            out_name = safe_name + ".eps"
+            dst_abs = os.path.join(out_dir, out_name)
+            cmd = tool.format(src=src_abs, dst=dst_abs)
+            ret = os.system(cmd)
+            if ret == 0:
+                return os.path.relpath(dst_abs, docdir).replace("\\", "/")
+        # Fall back to PDF (rsvg, inkscape, or ImageMagick).
+        tool, ext = self._svg_to_pdf_tool()
         if not tool:
-            print("Warning: no SVG→PDF tool (rsvg-convert, inkscape, or ImageMagick); skip " + src_path)
+            print("Warning: no SVG→figure tool (inkscape for EPS, or rsvg-convert/inkscape/ImageMagick for PDF); skip " + src_path)
             return None
+        out_name = safe_name + ".pdf"
+        dst_abs = os.path.join(out_dir, out_name)
         cmd = tool.format(src=src_abs, dst=dst_abs)
         ret = os.system(cmd)
         if ret != 0:
             print("Warning: conversion failed: " + cmd)
             return None
-        # Return path relative to docdir for use in markdown
-        rel = os.path.relpath(dst_abs, docdir)
-        return rel.replace("\\", "/")
+        return os.path.relpath(dst_abs, docdir).replace("\\", "/")
+
+    def _convert_svg_to_pdf(self, docdir, src_path, out_dir):
+        """Convert one SVG to PDF in out_dir. Return path relative to docdir for the PDF, or None.
+        (Kept for compatibility; prefer _convert_svg_to_fig which uses EPS when available.)"""
+        return self._convert_svg_to_fig(docdir, src_path, out_dir)
 
     def makeCombinedLatex(self, combined_path=None, out_path=None):
         """
-        From combined.md, produce combined_latex.md with SVGs converted to PDF so LaTeX can include them.
-        Image paths are rewritten to point to media_pdf/*.pdf.
+        From combined.md, produce combined_latex.md with SVGs converted to EPS (preferred) or PDF so LaTeX can include them.
+        Image paths are rewritten to point to media_pdf/*.eps or media_pdf/*.pdf. pdflatex uses epstopdf for .eps.
         """
         docdir = self.docdir
         if combined_path is None:
@@ -382,9 +403,9 @@ title: {title}
         for m in img_re.finditer(content):
             alt, path = m.group(1), m.group(2).strip()
             path_rel = path.split("?")[0].strip()
-            pdf_rel = self._convert_svg_to_pdf(docdir, path_rel, media_pdf_dir)
-            if pdf_rel:
-                replacements.append((m.group(0), "![" + alt + "](" + pdf_rel + ")"))
+            fig_rel = self._convert_svg_to_fig(docdir, path_rel, media_pdf_dir)
+            if fig_rel:
+                replacements.append((m.group(0), "![" + alt + "](" + fig_rel + ")"))
             else:
                 replacements.append((m.group(0), "\n[Image: SVG not converted]\n"))
         for old, new in replacements:
@@ -421,7 +442,7 @@ title: {title}
         title_path = os.path.join(os.path.dirname(out_path), "pdf_title.txt")
         with open(title_path, "w") as tf:
             tf.write(title)
-        print("INFO: wrote " + out_path + " (SVG→PDF for LaTeX)")
+        print("INFO: wrote " + out_path + " (SVG→EPS or PDF for LaTeX)")
 
     def run_combined_latex(self):
         """Ensure combined.md exists, then produce combined_latex.md with SVGs as PDFs."""
