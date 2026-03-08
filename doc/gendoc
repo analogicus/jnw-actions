@@ -37,6 +37,10 @@ if [[ -f docs/assets/combined_latex.md ]] && command -v pandoc >/dev/null 2>&1; 
         -o assets/combined.tex assets/combined_latex.md) || true
     if [[ -f docs/assets/combined.tex ]]; then
         echo "INFO: LaTeX written to docs/assets/combined.tex (inspect e.g. line 133)"
+        # From Simulations onward use one-column for better readability.
+        sed -e '/\\subsection{Simulations}/i\
+\\clearpage\\onecolumn
+' docs/assets/combined.tex > docs/assets/combined.tex.tmp && mv docs/assets/combined.tex.tmp docs/assets/combined.tex
         (cd docs && TEXINPUTS=".:${TPLDIR}:${TEXINPUTS:-}" pdflatex -interaction=nonstopmode -output-directory=assets assets/combined.tex) || echo "WARNING: pdflatex failed"
     fi
 fi
