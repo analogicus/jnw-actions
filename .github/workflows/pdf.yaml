@@ -61,7 +61,8 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            texlive-latex-base texlive-latex-extra texlive-fonts-recommended
+            texlive-latex-base texlive-latex-extra texlive-fonts-recommended \
+            lmodern
       - name: Download pdf-build
         uses: actions/download-artifact@v4
         with:
