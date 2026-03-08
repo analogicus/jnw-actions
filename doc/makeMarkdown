@@ -322,19 +322,41 @@ title: {title}
         return (None, "eps")
 
     def _svg_to_pdf_tool(self):
-        """Return (cmd_pattern, ext) for SVG→PDF: cmd_pattern has {dst} {src}. Try rsvg, inkscape, then ImageMagick."""
-        # rsvg-convert (librsvg): rsvg-convert -f pdf -o out.pdf in.svg
+        """Return (cmd_pattern, ext) for SVG→PDF. Prefer PDF 1.5 for pdflatex compatibility. Try rsvg, inkscape, then ImageMagick."""
         r = subprocess.run(["which", "rsvg-convert"], capture_output=True, text=True)
         if r.returncode == 0 and r.stdout.strip():
             return ("rsvg-convert -f pdf -o {dst} {src}", "pdf")
         r = subprocess.run(["which", "inkscape"], capture_output=True, text=True)
         if r.returncode == 0 and r.stdout.strip():
-            return ("inkscape {src} --export-type=pdf -o {dst}", "pdf")
+            return ("inkscape {src} --export-type=pdf --export-pdf-version=1.5 -o {dst}", "pdf")
         if subprocess.run(["which", "magick"], capture_output=True).returncode == 0:
-            return ("magick -density 150 {src} {dst}", "pdf")
+            return ("magick -density 150 -define pdf:version=1.5 {src} {dst}", "pdf")
         if subprocess.run(["which", "convert"], capture_output=True).returncode == 0:
-            return ("convert -density 150 {src} {dst}", "pdf")
+            return ("convert -density 150 -define pdf:version=1.5 {src} {dst}", "pdf")
         return (None, "pdf")
+
+    def _pdf_to_pdf15(self, pdf_path):
+        """Re-save PDF as version 1.5 with ghostscript if available. Return True if done or skipped (no gs), False on failure."""
+        if not os.path.exists(pdf_path):
+            return False
+        r = subprocess.run(["which", "gs"], capture_output=True, text=True)
+        if r.returncode != 0 or not r.stdout.strip():
+            return True  # no gs, skip (caller keeps original)
+        tmp = pdf_path + ".tmp.pdf"
+        cmd = [
+            "gs", "-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.5",
+            "-dNOPAUSE", "-dBATCH", "-sOutputFile=" + tmp, pdf_path
+        ]
+        ret = subprocess.run(cmd, capture_output=True, text=True)
+        if ret.returncode == 0 and os.path.exists(tmp):
+            os.replace(tmp, pdf_path)
+            return True
+        if os.path.exists(tmp):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+        return False
 
     def _convert_svg_to_fig(self, docdir, src_path, out_dir):
         """Convert one SVG to a figure for LaTeX. Prefer EPS (tight bounding box) when Inkscape is available, else PDF.
@@ -372,6 +394,8 @@ title: {title}
         if ret != 0:
             print("Warning: conversion failed: " + cmd)
             return None
+        # rsvg-convert may output PDF 1.7; downgrade to 1.5 with gs if available (pdflatex compatibility).
+        self._pdf_to_pdf15(dst_abs)
         return os.path.relpath(dst_abs, docdir).replace("\\", "/")
 
     def makeCombinedLatex(self, combined_path=None, out_path=None):

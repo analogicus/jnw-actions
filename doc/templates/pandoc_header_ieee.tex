@@ -1,5 +1,7 @@
 % Two-column for everything. Same as aic2026/pdf: longtable -> scriptsize
 % tabular in center; toprule/midrule/bottomrule swallow \noalign{} and become \hline.
+% Allow embedding PDFs up to 1.7 (e.g. from rsvg-convert/Inkscape) without warning.
+\pdfminorversion=7
 \usepackage{graphicx}
 \usepackage{epstopdf}
 \usepackage{float}
@@ -14,22 +16,4 @@
 % Allow underscore _ in text (e.g. V_CTAT) so it does not trigger math mode
 \IfFileExists{underscore.sty}{\usepackage{underscore}}{}
 
-% Figures: wrap in figure[H], constrain size to column.
-% Defer to AtBeginDocument so pandoc's \pandocbounded is already defined.
-\AtBeginDocument{%
-\makeatletter
-\setkeys{Gin}{width=\columnwidth,height=0.5\textheight,keepaspectratio}
-\renewcommand*\pandocbounded[1]{%
-  \begin{figure}[H]
-  \centering
-  \sbox\pandoc@box{#1}%
-  \Gscale@div\@tempa{0.5\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
-  \Gscale@div\@tempb{\dimexpr\columnwidth-4pt}{\wd\pandoc@box}%
-  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi%
-  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
-  \else\usebox{\pandoc@box}%
-  \fi%
-  \end{figure}
-}
-\makeatother
-}
+
