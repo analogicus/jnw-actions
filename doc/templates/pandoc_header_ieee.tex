@@ -1,5 +1,6 @@
 % Two-column for everything. Same as aic2026/pdf: longtable -> scriptsize
 % tabular in center; toprule/midrule/bottomrule swallow \noalign{} and become \hline.
+\usepackage{graphicx}
 \usepackage{epstopdf}
 \usepackage{float}
 \renewenvironment{longtable}{\begin{center}\scriptsize\begin{tabular}}{\end{tabular}\end{center}}
@@ -14,6 +15,8 @@
 \IfFileExists{underscore.sty}{\usepackage{underscore}}{}
 
 % Figures: wrap in figure[H], constrain size to column.
+% Defer to AtBeginDocument so pandoc's \pandocbounded is already defined.
+\AtBeginDocument{%
 \makeatletter
 \setkeys{Gin}{width=\columnwidth,height=0.5\textheight,keepaspectratio}
 \renewcommand*\pandocbounded[1]{%
@@ -29,3 +32,4 @@
   \end{figure}
 }
 \makeatother
+}
