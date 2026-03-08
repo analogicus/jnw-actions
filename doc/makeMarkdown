@@ -93,8 +93,7 @@ title: {title}
         mdinsert = ""
         if(os.path.exists(md)):
             with open(md) as fi:
-                for line in fi:
-                    mdbuff =fi.read()
+                mdbuff = fi.read()
 
 
 
