@@ -374,16 +374,8 @@ title: {title}
             return None
         return os.path.relpath(dst_abs, docdir).replace("\\", "/")
 
-    def _convert_svg_to_pdf(self, docdir, src_path, out_dir):
-        """Convert one SVG to PDF in out_dir. Return path relative to docdir for the PDF, or None.
-        (Kept for compatibility; prefer _convert_svg_to_fig which uses EPS when available.)"""
-        return self._convert_svg_to_fig(docdir, src_path, out_dir)
-
     def makeCombinedLatex(self, combined_path=None, out_path=None):
-        """
-        From combined.md, produce combined_latex.md with SVGs converted to EPS (preferred) or PDF so LaTeX can include them.
-        Image paths are rewritten to point to media_pdf/*.eps or media_pdf/*.pdf. pdflatex uses epstopdf for .eps.
-        """
+        """Build combined_latex.md from combined.md with SVGs converted to EPS or PDF."""
         docdir = self.docdir
         if combined_path is None:
             combined_path = os.path.join(docdir, "combined.md")
@@ -442,10 +434,10 @@ title: {title}
         title_path = os.path.join(os.path.dirname(out_path), "pdf_title.txt")
         with open(title_path, "w") as tf:
             tf.write(title)
-        print("INFO: wrote " + out_path + " (SVG→EPS or PDF for LaTeX)")
+        print("INFO: wrote " + out_path)
 
     def run_combined_latex(self):
-        """Ensure combined.md exists, then produce combined_latex.md with SVGs as PDFs."""
+        """Ensure combined.md exists, then build combined_latex.md (SVG→EPS/PDF)."""
         if not os.path.exists(self.docdir + os.path.sep + "combined.md"):
             self.makeCombinedMarkdown()
         self.makeCombinedLatex()
@@ -644,10 +636,7 @@ def latex_cmd(info, makefile, run_commands):
 @cli.command("combined-latex")
 @click.option("--info", default="../info.yaml", help="Info file")
 def combined_latex_cmd(info):
-    """
-    Build combined_latex.md from combined.md with all SVGs converted to PDF for LaTeX.
-    Requires rsvg-convert, inkscape, or ImageMagick. Run from same dir as gendoc (e.g. work/).
-    """
+    """Build combined_latex.md from combined.md (SVG→EPS/PDF). Run from work/."""
     c = MakeDocs(info)
     c.run_combined_latex()
 
