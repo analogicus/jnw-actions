@@ -16,8 +16,36 @@ test -d docs ||  cicsim template --dname docs ${DOC_SCRIPT_PATH}/template.yaml i
 python3 ${DOC_SCRIPT_PATH}/fixBaseUrl.py
 cd work
 python3 ${DOC_SCRIPT_PATH}/makeMarkdown --info ../info.yaml
+python3 ${DOC_SCRIPT_PATH}/makeMarkdown combined-latex --info ../info.yaml
 cd ..
 test -d media && cp -r media docs/
 test -d documents && cp -r documents/* docs/
+
+if [[ -f docs/assets/combined_latex.md ]] && command -v pandoc >/dev/null 2>&1; then
+    echo "INFO: Building PDF from combined_latex.md (pandoc + pdflatex, IEEEtran)"
+    TPLDIR="${DOC_SCRIPT_PATH}/templates"
+    [[ -d "$TPLDIR" ]] && TPLDIR="$(cd "$TPLDIR" && pwd)"
+    PDFTITLE="Documentation"
+    [[ -f info.yaml ]] && PDFTITLE="$(python3 "${DOC_SCRIPT_PATH}/get_pdf_title.py" --info info.yaml)"
+    (cd docs && TEXINPUTS=".:${TPLDIR}:${TEXINPUTS:-}" pandoc \
+        -V documentclass=IEEEtran \
+        -V classoption=final \
+        -V classoption=a4paper \
+        -V classoption=journal \
+        -V title="${PDFTITLE}" \
+        -H "${TPLDIR}/pandoc_header_ieee.tex" \
+        -o assets/combined.tex assets/combined_latex.md) || true
+    if [[ -f docs/assets/combined.tex ]]; then
+        # From Schematics onward use one-column for better readability (schematics + simulations).
+        sed -e '/\\subsection{Schematics}/i\
+\\clearpage\\onecolumn
+' docs/assets/combined.tex > docs/assets/combined.tex.tmp && mv docs/assets/combined.tex.tmp docs/assets/combined.tex
+        if [[ -z "${SKIP_PDFLATEX}" ]]; then
+            (cd docs && TEXINPUTS=".:${TPLDIR}:${TEXINPUTS:-}" pdflatex -interaction=nonstopmode -output-directory=assets assets/combined.tex) || echo "WARNING: pdflatex failed"
+        else
+            echo "INFO: Skipping pdflatex (SKIP_PDFLATEX is set)"
+        fi
+    fi
+fi
 
 exit 0

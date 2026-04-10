@@ -1,0 +1,19 @@
+% Two-column for everything. Same as aic2026/pdf: longtable -> scriptsize
+% tabular in center; toprule/midrule/bottomrule swallow \noalign{} and become \hline.
+% Allow embedding PDFs up to 1.7 (e.g. from rsvg-convert/Inkscape) without warning.
+\pdfminorversion=7
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{float}
+\renewenvironment{longtable}{\begin{center}\scriptsize\begin{tabular}}{\end{tabular}\end{center}}
+\renewcommand{\endhead}{}
+\renewcommand{\endfirsthead}{}
+\def\endlastfoot{\hspace{0mm}}
+\renewcommand{\toprule}[2]{\hline}
+\renewcommand{\midrule}[2]{\hline}
+\renewcommand{\bottomrule}[2]{\hline}
+
+% Allow underscore _ in text (e.g. V_CTAT) so it does not trigger math mode
+\IfFileExists{underscore.sty}{\usepackage{underscore}}{}
+
+
