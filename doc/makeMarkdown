@@ -22,14 +22,20 @@ LATEX_PANDOC_OPTS = [
 LATEX_VERSION_DEFAULT = "Built from docs"
 
 # Unicode -> LaTeX inline math for pdflatex (no newunicodechar needed)
+#- \ensuremath, NOT $...$: pandoc's tex_math_dollars refuses a math
+#  span whose closing $ is immediately followed by a digit, so
+#  "\u00b115 C" became \$\pm\$15 (escaped dollars, \pm outside math) and
+#  pdflatex died with "Missing $ inserted". A raw \ensuremath{...}
+#  passes through pandoc untouched and works in text and math mode,
+#  whatever character follows.
 UNICODE_TO_LATEX = [
-    ("\u03a9", r"$\Omega$"),   # Omega
-    ("\u03bc", r"$\mu$"),      # mu
-    ("\u00b0", r"$^\circ$"),   # degree
-    ("\u00b1", r"$\pm$"),      # plus-minus
-    ("\u00d7", r"$\times$"),   # times
-    ("\u2264", r"$\le$"),      # le
-    ("\u2265", r"$\ge$"),     # ge
+    ("\u03a9", r"\ensuremath{\Omega}"),   # Omega
+    ("\u03bc", r"\ensuremath{\mu}"),      # mu
+    ("\u00b0", r"\ensuremath{^\circ}"),   # degree
+    ("\u00b1", r"\ensuremath{\pm}"),      # plus-minus
+    ("\u00d7", r"\ensuremath{\times}"),   # times
+    ("\u2264", r"\ensuremath{\le}"),      # le
+    ("\u2265", r"\ensuremath{\ge}"),      # ge
 ]
 
 def unicode_to_latex(text):
