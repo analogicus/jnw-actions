@@ -10,7 +10,7 @@ jobs:
   build-tex:
     runs-on: ubuntu-latest
     container:
-      image: wulffern/aicex:26.04_0.1.7
+      image: ghcr.io/wulffern/aicex:26.04_latest
       options: --user root
     steps:
       - name: Checkout
